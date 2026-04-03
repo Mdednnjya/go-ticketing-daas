@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  postgres-db:
+    image: postgres:15-alpine
+  
+    environment: 
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret123
+      POSTGRES_DB: ticketing_db
+      
+    ports: 
+      - "5433:5432"
+    
+    volumes:
+      - "go-volumes:/var/lib/postgresql/data"
+
+volumes:
+  go-volumes:
