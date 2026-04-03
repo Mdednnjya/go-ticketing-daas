@@ -1,7 +1,9 @@
 package main
 
 import (
+	"core-ticketing-engine/internal/config"
 	"core-ticketing-engine/internal/handler"
+	"core-ticketing-engine/internal/repository"
 	"log"
 	"net/http"
 )
@@ -9,7 +11,12 @@ import (
 func main() {
 	// init
 	mux := http.NewServeMux()
-	port := ":8080"
+	port := ":8081"
+	db := config.ConnectDB()
+
+	ticketRepo := repository.NewTicketRepository(db)
+
+	_ = ticketRepo
 
 	// endpoints
 	mux.HandleFunc("/health", handler.HealthCheckHandler)
