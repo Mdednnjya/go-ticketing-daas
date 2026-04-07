@@ -47,3 +47,31 @@ func (h *TicketHandler) CreateTicket(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`"{message": "Ticket successfully created!", "status": "success}"`))
 	
 }
+
+func (h *TicketHandler) GetTickets(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	data, err := h.service.GetAllTickets();
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error": "Failed to fetch Data, internal server error"}`))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(data)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error": "Failed to Encode data"}`))
+		return
+	}
+
+
+}

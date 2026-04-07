@@ -22,7 +22,8 @@ func main() {
 
 	// endpoints
 	mux.HandleFunc("/health", handler.HealthCheckHandler)
-	mux.HandleFunc("/api/tickets", ticketHandler.CreateTicket)
+	mux.HandleFunc("POST /api/tickets", ticketHandler.CreateTicket)
+	mux.HandleFunc("GET /api/tickets", ticketHandler.GetTickets)
 
 	log.Printf("Server is Running on Port %s \n", port)
 	err := http.ListenAndServe(port, mux)

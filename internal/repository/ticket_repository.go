@@ -2,8 +2,7 @@ package repository
 
 import (
 	"core-ticketing-engine/internal/entity"
-	"log"
-
+	"fmt"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -21,9 +20,21 @@ func (r *TicketRepository) CreateTicket(ticket entity.Ticket) error {
 	_, err := r.db.Exec(query, ticket.EventName, ticket.Price)
 
 	if err != nil {
-		log.Fatalf("Error inserting data to DB! \n")
-		return err
+		return fmt.Errorf("Error inserting data to db: %w\n", err)
 	}
 
 	return nil
+}
+
+func (r *TicketRepository) FindAll() ([]entity.Ticket, error) {
+	query := "SELECT * FROM tickets"
+	var tickets []entity.Ticket
+
+	err := r.db.Select(&tickets, query)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to Fetch ticket from db: %w \n", err)
+	}
+
+	return tickets, nil
 }

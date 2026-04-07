@@ -1,8 +1,8 @@
 package entity
 
 type Ticket struct {
-	ID 			int 	`json:"id"`
-	EventName 	string	`json:"event_name"`
-	Price 		int		`json:"price"`
+	ID 			int 	`db:"id"`
+	EventName 	string	`db:"event_name"`
+	Price 		int		`db:"price"`
 
 }
