@@ -2,33 +2,48 @@ package handler
 
 import (
 	"core-ticketing-engine/internal/entity"
-	"net/http"	
+	"core-ticketing-engine/internal/service"
 	"encoding/json"
+	"net/http"
 )
+
+type TicketHandler struct {
+	service *service.TicketService
+}
+
+func NewTicketHandler(service *service.TicketService) *TicketHandler {
+	return &TicketHandler{service:service}
+}
 	
 
-func TicketsHandler(w http.ResponseWriter, r *http.Request) {
-	ticket01 := []entity.Ticket{
-		{
-			ID: 1, 
-			EventName: "Coldplay",
-			Price: 150,
-		},
-		{
-			ID: 2,
-			EventName: "Coldplay JKT",
-			Price: 175,
-		},
-	}
-
-	data, err := json.Marshal(ticket01)
-
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{error: Internal Server Error!}"))
+func (h *TicketHandler) CreateTicket(w http.ResponseWriter, r *http.Request) {
+	// layer 1 Method validation
+	if r.Method != http.MethodPost {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte(`{"error": "Method not Allowed!"}`))
 		return
 	}
+
+	// layer 2 JSON validation
+	var inputTicket entity.Ticket
+	err := json.NewDecoder(r.Body).Decode(&inputTicket)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error": "Invalid JSON format!"}`))
+		return
+	}
+	// layer 3 call the service
+	err = h.service.CreateTicket(inputTicket)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error": "Failed to process ticket creation"}`))
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(data)
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(`"{message": "Ticket successfully created!", "status": "success}"`))
 	
 }

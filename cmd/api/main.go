@@ -4,6 +4,7 @@ import (
 	"core-ticketing-engine/internal/config"
 	"core-ticketing-engine/internal/handler"
 	"core-ticketing-engine/internal/repository"
+	"core-ticketing-engine/internal/service"
 	"log"
 	"net/http"
 )
@@ -15,12 +16,13 @@ func main() {
 	db := config.ConnectDB()
 
 	ticketRepo := repository.NewTicketRepository(db)
-
-	_ = ticketRepo
+	ticketService := service.NewTicketService(ticketRepo)
+	ticketHandler := handler.NewTicketHandler(ticketService)
+	
 
 	// endpoints
 	mux.HandleFunc("/health", handler.HealthCheckHandler)
-	mux.HandleFunc("/api/tickets", handler.TicketsHandler)
+	mux.HandleFunc("/api/tickets", ticketHandler.CreateTicket)
 
 	log.Printf("Server is Running on Port %s \n", port)
 	err := http.ListenAndServe(port, mux)
