@@ -38,7 +38,7 @@ func (s *TicketService) GetAllTickets() ([]dto.TicketResponse,error) {
 	
 	tickets, err := s.repo.FindAll()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get tickets from repository: %w \n", err)
+		return nil, fmt.Errorf("failed to get tickets from repository: %w", err)
 	}
 
 	var ticketsResponse []dto.TicketResponse
