@@ -22,10 +22,9 @@ func main() {
 
 	// transaction domain
 	txnRepo := repository.NewTransactionRepository(db)
-	txnService := service.NewTransactionService(txnRepo, ticketRepo)
+	txnService := service.NewTransactionService(txnRepo, ticketRepo, db)
 	txnHandler := handler.NewTransactionHandlder(txnService)
 
-	
 
 	// endpoints
 	mux.HandleFunc("/health", handler.HealthCheckHandler)
