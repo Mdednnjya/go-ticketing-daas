@@ -25,7 +25,6 @@ func main() {
 	txnService := service.NewTransactionService(txnRepo, ticketRepo)
 	txnHandler := handler.NewTransactionHandlder(txnService)
 
-	
 
 	// endpoints
 	mux.HandleFunc("/health", handler.HealthCheckHandler)

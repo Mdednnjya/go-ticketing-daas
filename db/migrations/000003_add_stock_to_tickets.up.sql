@@ -1,0 +1,1 @@
+ALTER TABLE tickets ADD COLUMN stock INT DEFAULT 0;

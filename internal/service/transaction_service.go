@@ -30,10 +30,13 @@ func (s *TransactionService) CreateTransaction(req dto.TransactionRequest) error
 		TotalPrice: req.Quantity * ticket.Price,
 	}
 
+	
 	err = s.transactionRepo.CreateTransaction(data)
 	if err != nil {
 		return fmt.Errorf("failed to insert transaction into db: %w", err)
 	}
 
+	// logic to deduct ticket stocks based on how many ticket user want
+	
 	return nil
 }
