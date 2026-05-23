@@ -39,14 +39,23 @@ func (r *TicketRepository) FindAll() ([]entity.Ticket, error) {
 	return tickets, nil
 }
 
-func (r *TicketRepository) FindByID(id int) (entity.Ticket, error) {
-	query := "SELECT * FROM tickets WHERE ID = $1"
+func (r *TicketRepository) FindByIDTx(tx *sqlx.Tx, id int) (entity.Ticket, error) {
+	query := "SELECT * FROM tickets WHERE ID = $1 FOR UPDATE"  
 	var ticket entity.Ticket
-	
-	err := r.db.Get(&ticket, query, id)
+
+	err := tx.Get(&ticket, query, id)
 	if err != nil {
 		return entity.Ticket{}, fmt.Errorf("Failed to fetch ticket from db: %w", err)
 	}
 
 	return ticket, nil
+}
+
+
+func (r *TicketRepository) DecreaseStock(tx *sqlx.Tx, id int, qty int) error {
+	query := "UPDATE tickets SET stock = stock - $1 WHERE id = $2"
+	_, err := tx.Exec(query, qty, id)
+
+
+	return err
 }
