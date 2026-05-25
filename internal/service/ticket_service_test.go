@@ -38,7 +38,7 @@ func TestGetTicketByID_Success(t *testing.T) {
 		},
 	}
 
-	svc := NewTicketService(fakeRepo)
+	svc := NewTicketService(fakeRepo, nil)
 
 	result, err := svc.GetTicketByID(1)
 
@@ -63,7 +63,7 @@ func TestGetTicketByID_NotFound(t *testing.T) {
 		},
 	}
 
-	svc := NewTicketService(fakeRepo)
+	svc := NewTicketService(fakeRepo, nil)
 
 	result, err := svc.GetTicketByID(99)
 

@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 )
 
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("System is up and Running!\n")
+	log.Printf("System is up and Running!\n")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("System is running and health!"))
 }
