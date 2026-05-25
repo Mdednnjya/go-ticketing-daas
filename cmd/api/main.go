@@ -5,6 +5,7 @@ import (
 	"core-ticketing-engine/internal/handler"
 	"core-ticketing-engine/internal/repository"
 	"core-ticketing-engine/internal/service"
+	"core-ticketing-engine/internal/worker"
 	"log"
 	"net/http"
 
@@ -26,7 +27,9 @@ func main() {
 	// transaction domain
 	txnRepo := repository.NewTransactionRepository(db)
 	txnService := service.NewTransactionService(txnRepo, ticketRepo, db)
-	txnHandler := handler.NewTransactionHandlder(txnService)
+	txnPool := worker.NewTransactionPool(txnService)
+	txnPool.Start()
+	txnHandler := handler.NewTransactionHandlder(txnPool)
 
 
 	// endpoints

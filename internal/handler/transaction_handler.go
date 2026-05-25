@@ -2,17 +2,17 @@ package handler
 
 import (
 	"core-ticketing-engine/internal/dto"
-	"core-ticketing-engine/internal/service"
+	"core-ticketing-engine/internal/worker"
 	"encoding/json"
 	"net/http"
 )
 
 type TransactionHandler struct {
-	service *service.TransactionService
+	pool *worker.TransactionPool
 }
 
-func NewTransactionHandlder(svc *service.TransactionService) *TransactionHandler {
-	return &TransactionHandler{service: svc}
+func NewTransactionHandlder(pool *worker.TransactionPool) *TransactionHandler {
+	return &TransactionHandler{pool: pool}
 }
 
 func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
@@ -25,7 +25,7 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	err = h.service.CreateTransaction(req)
+	err = h.pool.Submit(req)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
