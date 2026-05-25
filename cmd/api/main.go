@@ -29,7 +29,7 @@ func main() {
 	txnService := service.NewTransactionService(txnRepo, ticketRepo, db)
 	txnPool := worker.NewTransactionPool(txnService)
 	txnPool.Start()
-	txnHandler := handler.NewTransactionHandlder(txnPool)
+	txnHandler := handler.NewTransactionHandler(txnPool)
 
 
 	// endpoints

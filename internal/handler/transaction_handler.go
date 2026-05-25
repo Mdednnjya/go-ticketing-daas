@@ -11,7 +11,7 @@ type TransactionHandler struct {
 	pool *worker.TransactionPool
 }
 
-func NewTransactionHandlder(pool *worker.TransactionPool) *TransactionHandler {
+func NewTransactionHandler(pool *worker.TransactionPool) *TransactionHandler {
 	return &TransactionHandler{pool: pool}
 }
 
