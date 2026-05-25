@@ -24,12 +24,12 @@ func NewTransactionService(TxnRepo *repository.TransactionRepository, TicRepo *r
 func (s *TransactionService) CreateTransaction(req dto.TransactionRequest) error {
 	tx, err := s.db.Beginx()
 	if err != nil {
-		return fmt.Errorf("failed tp init tx object: %w", err)
+		return fmt.Errorf("failed tp init to object: %w", err)
 		
 	}
 
 	// unit of work 
-	ticket, err := s.ticketRepo.FindByIDTx(tx, req.TicketID)
+	ticket, err := s.ticketRepo.FindByIdTx(tx, req.TicketID)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to find ticket: %w", err)
