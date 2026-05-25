@@ -13,5 +13,12 @@ services:
     volumes:
       - "go-volumes:/var/lib/postgresql/data"
 
+  redis-cache:
+    image: redis:7-alpine
+    container_name: ticekting-redis
+    ports:
+      - "6379:6379"
+
+
 volumes:
   go-volumes:

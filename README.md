@@ -21,7 +21,7 @@ Clean Architecture with layered separation:
 
 ## Tech Stack
 
-Go 1.25 · PostgreSQL · sqlx · Docker · Docker Compose
+Go 1.25 · PostgreSQL · Redis · sqlx · Docker · Docker Compose
 
 ## What's Implemented
 
@@ -32,7 +32,9 @@ Go 1.25 · PostgreSQL · sqlx · Docker · Docker Compose
   ticket purchases and prevent overselling
 - Connection pool tuning to eliminate connection acquisition bottleneck
   under high concurrency
-- Containerized PostgreSQL via Docker Compose
+- Redis cache-aside layer to absorb high-frequency ticket read queries,
+  with automatic cache invalidation on every successful purchase
+- Containerized PostgreSQL and Redis via Docker Compose
 
 ## Engineering Decisions
 
@@ -44,13 +46,14 @@ The central problem: what happens when 10,000 users hit
 | Two users buy the last ticket at the same millisecond | Oversell — both get confirmation | Pessimistic locking (`SELECT FOR UPDATE`) — DB serializes concurrent buyers |
 | Payment succeeds but reservation fails | User charged, no ticket received | ACID transaction — debit + reservation are atomic (all or nothing) |
 | Raw DB object sent to client | Internal pricing logic / IDs exposed | DTO pattern — explicit data contract between domain and presentation |
-| 10k users refresh ticket availability per second | PostgreSQL hammered with identical reads | Redis cache — serve from memory, DB only hit on cache miss *(in progress)* |
+| 10k users refresh ticket availability per second | PostgreSQL hammered with identical reads | Redis cache-aside — serve from memory, DB only hit on cache miss, invalidated on purchase |
 
-## Load Test Results — Thundering Herd Scenario
+## Load Test Results
 
-**Setup:** 1,000 concurrent users (1-second ramp-up) targeting the same
-ticket endpoint simultaneously. Initial stock: 5 tickets, each request
-attempts to purchase qty = 2.
+Two separate scenarios, each with 1,000 concurrent users (1-second ramp-up).
+
+### Scenario A — Concurrent Purchase (Thundering Herd)
+Endpoint: `POST /checkout` · Same ticket ID · Stock: 5 · Qty per request: 2
 
 | Phase | Avg Latency | Throughput | Data Integrity |
 |---|---|---|---|
@@ -58,9 +61,22 @@ attempts to purchase qty = 2.
 | Locking, no pool tuning | 895ms | 395.6/sec | ✓ Exact — 2 purchases, 998 correctly rejected, 0 oversells |
 | Locking + connection pool tuning | **9ms** | **948.8/sec** | ✓ Exact — 2 purchases, 998 correctly rejected, 0 oversells |
 
-**Key finding:** The 886ms gap between phase 2 and phase 3 was entirely
+**Key finding:** The 886ms gap between phase 2 and 3 was entirely
 connection acquisition overhead — not query execution time. Pool tuning
 revealed the actual query performance.
+
+### Scenario B — Concurrent Read (Cache Validation)
+Endpoint: `GET /tickets/:id` · Same ticket ID · 1,000 concurrent reads
+
+| Phase | Avg Latency | Throughput | Error % |
+|---|---|---|---|
+| Without Redis (direct PostgreSQL) | 9ms | 948.8/sec | 0% |
+| With Redis cache-aside | **3ms** | **901.7/sec** | **0%** |
+
+**Key finding:** After cache warm-up, PostgreSQL receives near-zero read
+traffic. 3ms average reflects near-RAM read speed. Throughput difference
+is expected — GET returns full payload vs POST returning lightweight
+rejection responses.
 
 <details>
 <summary>JMeter Screenshots</summary>
@@ -73,16 +89,15 @@ revealed the actual query performance.
 
 ![phase3](./docs/benchmarks/phase3_locking_with_pool.jpeg)
 
+**Phase 4 — Redis cache-aside, concurrent read (3ms avg):**
+
+![phase4](./docs/benchmarks/phase4_redis_caching.png)
+
 </details>
-
-## In Progress
-
-- **Redis caching layer** — in-memory read cache to absorb high-frequency
-  ticket availability queries without hitting PostgreSQL on every request
 
 ## Run Locally
 
 ```bash
-docker-compose up -d     # start PostgreSQL
+docker-compose up -d     # start PostgreSQL and Redis
 go run ./cmd/api         # start server
 ```

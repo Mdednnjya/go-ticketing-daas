@@ -7,17 +7,20 @@ import (
 	"core-ticketing-engine/internal/service"
 	"log"
 	"net/http"
+
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
 	// init
-	mux := http.NewServeMux()
+	mux  := http.NewServeMux()
 	port := ":8081"
-	db := config.ConnectDB()
+	db   := config.ConnectDB()
+	rdb  := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
 
 	// ticket domain
 	ticketRepo := repository.NewTicketRepository(db)
-	ticketService := service.NewTicketService(ticketRepo)
+	ticketService := service.NewTicketService(ticketRepo, rdb)
 	ticketHandler := handler.NewTicketHandler(ticketService)
 
 	// transaction domain
