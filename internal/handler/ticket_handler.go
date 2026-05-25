@@ -5,6 +5,7 @@ import (
 	"core-ticketing-engine/internal/service"
 	"encoding/json"
 	"net/http"
+	"strconv"
 )
 
 type TicketHandler struct {
@@ -74,4 +75,39 @@ func (h *TicketHandler) GetTickets(w http.ResponseWriter, r *http.Request) {
 	}
 
 
+}
+
+func (h *TicketHandler) GetTicketById(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	// cut & take value
+	idString := r.PathValue("id")
+
+	// wash
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error": "id must be a number"}`))
+		return 
+	}
+
+	// append
+	data, err := h.service.GetTicketByID(id)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error": "Failed to fetch data, internal server error"}`))
+		return
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(data)
+
+	
 }

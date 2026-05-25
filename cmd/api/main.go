@@ -30,6 +30,7 @@ func main() {
 	mux.HandleFunc("/health", handler.HealthCheckHandler)
 	mux.HandleFunc("POST /api/tickets", ticketHandler.CreateTicket)
 	mux.HandleFunc("GET /api/tickets", ticketHandler.GetTickets)
+	mux.HandleFunc("GET /api/ticket/{id}", ticketHandler.GetTicketById)
 	mux.HandleFunc("POST /api/transactions", txnHandler.CreateTransaction)
 
 	log.Printf("Server is Running on Port %s \n", port)

@@ -3,16 +3,22 @@ package service
 import (
 	"core-ticketing-engine/internal/dto"
 	"core-ticketing-engine/internal/entity"
-	"core-ticketing-engine/internal/repository"
 	"errors"
 	"fmt"
 )
 
-type TicketService struct {
-	repo *repository.TicketRepository
+
+type TicketRepository interface {
+	CreateTicket(entity.Ticket) error
+	FindAll() ([]entity.Ticket, error)
+	FindById(id int) (entity.Ticket, error)
 }
 
-func NewTicketService(repo *repository.TicketRepository) *TicketService {
+type TicketService struct {
+	repo TicketRepository
+}
+
+func NewTicketService(repo TicketRepository) *TicketService {
 	return &TicketService{repo:repo}
 }
 
@@ -48,9 +54,26 @@ func (s *TicketService) GetAllTickets() ([]dto.TicketResponse,error) {
 			ID: t.ID,
 			EventName: t.EventName,
 			Price: t.Price,
+			Stock: t.Stock,
 		}
 
 		ticketsResponse = append(ticketsResponse, item)
 	}
 	return ticketsResponse, nil
+}
+
+func (s *TicketService) GetTicketByID(id int) (dto.TicketResponse, error) {
+	ticket, err := s.repo.FindById(id)
+	if err != nil {
+		return dto.TicketResponse{}, err
+	}
+
+	ticketResponse := dto.TicketResponse {
+		ID: ticket.ID,
+		EventName: ticket.EventName,
+		Price: ticket.Price,
+		Stock: ticket.Stock,
+	} 
+
+	return ticketResponse, nil
 }
